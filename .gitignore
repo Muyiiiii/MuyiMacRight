@@ -16,3 +16,6 @@ release/
 # 临时
 *.swp
 *.bak
+
+# 发文草稿
+post.md

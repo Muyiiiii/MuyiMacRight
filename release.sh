@@ -41,10 +41,18 @@ lipo -info "$APP_BUNDLE/Contents/PlugIns/MuyiMacRightFinderSync.appex/Contents/M
 echo "=> 验证签名"
 codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE" 2>&1 | tail -5
 
+echo "=> 准备分发目录（含 .app + 一键安装脚本）"
+STAGE_DIR="${BUILD_DIR}/${APP_NAME}-${VERSION}"
+rm -rf "$STAGE_DIR"
+mkdir -p "$STAGE_DIR"
+ditto "$APP_BUNDLE" "${STAGE_DIR}/${APP_NAME}.app"
+cp "${REPO_ROOT}/install-for-user.command" "${STAGE_DIR}/"
+chmod +x "${STAGE_DIR}/install-for-user.command"
+
 echo "=> 用 ditto 打 zip（保留签名 + 符号链接 + 资源 fork）"
 ZIP_NAME="${APP_NAME}-${VERSION}.zip"
 ZIP_PATH="${RELEASE_DIR}/${ZIP_NAME}"
-ditto -c -k --keepParent --sequesterRsrc "$APP_BUNDLE" "$ZIP_PATH"
+ditto -c -k --keepParent --sequesterRsrc "$STAGE_DIR" "$ZIP_PATH"
 
 echo "=> 生成 README.txt（给下载用户看）"
 cat > "${RELEASE_DIR}/README.txt" <<'EOF'
@@ -60,34 +68,43 @@ MuyiMacRight - Finder 右键扩展
 
 
 ----------------------------------------
-首次安装（一次性，约 3 分钟）
+首次安装（推荐流程，1 分钟）
 ----------------------------------------
 
-1. 解压 zip，把 MuyiMacRight.app 拖到 /Applications/
+1. 解压 zip，进入解压出来的文件夹
 
-2. 第一次打开必须**右键 → 打开**（不是双击）：
-     macOS 会弹「无法打开因开发者未识别」的警告
-     右键 MuyiMacRight.app → 打开 → 在弹窗里再次点「打开」即可
-     （这一步 macOS 强制要求，因为 app 没有付费 Apple Developer 签名）
+2. **双击 install-for-user.command**
+   Terminal 会自动跳出，几秒钟跑完所有命令行步骤
+   （拷到 /Applications/、剥隔离属性、注册扩展、启动 app、打开扩展面板）
 
-3. App 启动后会自动驻留在屏幕**右上角菜单栏**（不出现在 Dock）
-   找一个鼠标光标 + 点击星号的小图标 → 这就是 MuyiMacRight
+   如果被「无法打开开发者未识别的脚本」拦住：
+   右键 install-for-user.command → 打开 → 弹窗里再点【打开】
 
-4. 点开菜单图标，按顺序点：
+3. 脚本跑完后做两件 macOS 强制人工的事：
 
-   a. 「Finder 控制权 — 未授权」
-      → 系统弹「MuyiMacRight 想要控制 Finder」→ 点【好】
+   ① 在弹出的【系统设置】里勾选 FinderSync 扩展
+      - macOS 15: 通用 → 登录项与扩展 → 滚到最下「扩展」区
+                  → 点「已添加的扩展」→ 勾选 FinderSync
+      - macOS 13/14: 隐私与安全性 → 扩展 → 已添加的扩展
+                    → 勾选 FinderSync
 
-   b. 「System Events 控制权 — 未授权」
-      → 系统弹「MuyiMacRight 想要控制 System Events」→ 点【好】
+   ② 点屏幕右上角菜单栏【鼠标光标点击图标】，按引导走三段权限：
+      a. 「Finder 控制权」          → 弹窗点【好】
+      b. 「System Events 控制权」    → 弹窗点【好】
+      c. 「辅助功能（模拟回车）」    → 系统设置自动打开
+                                    → 列表里点【+】→ 选 /Applications/MuyiMacRight.app
+                                    → 打开右边开关
 
-   c. 「辅助功能（模拟回车）— 未授权」
-      → 系统设置自动打开「隐私与安全性 → 辅助功能」面板
-      → 在列表里点【+】→ 选 /Applications/MuyiMacRight.app → 打开右边开关
+4. 重新点菜单图标，三行权限都是 ✓ 即安装成功
 
-5. 点菜单的「打开扩展设置」按钮，在系统设置里勾选 FinderSync 扩展
+----------------------------------------
+手动安装（脚本跑不了的话）
+----------------------------------------
 
-6. 重新点开菜单图标，三行权限都应该是 ✓
+1. 把 MuyiMacRight.app 拖到 /Applications/
+2. 打开终端，执行：xattr -cr /Applications/MuyiMacRight.app
+3. 右键 MuyiMacRight.app → 打开（双击会被 Gatekeeper 挡）→ 弹窗再点【打开】
+4. 跟上面【首次安装】3-4 步一样配权限 + 启用扩展
 
 ----------------------------------------
 使用
