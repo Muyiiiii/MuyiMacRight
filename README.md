@@ -1,5 +1,7 @@
 # MuyiMacRight
 
+> [English](README.en.md)
+
 在 Finder 文件夹空白处右键，弹出「用 VSCode 打开此文件夹」与「新建文件 ▶ Markdown / Python / JavaScript / …」菜单。基于 macOS Finder Sync Extension。
 
 ## 目录结构
