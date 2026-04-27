@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+.AppleDouble
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+build/
+DerivedData/
+*.swiftpm
+
+# 分发产物（zip 走 GitHub Release 附件，不入 git）
+release/
+
+# 临时
+*.swp
+*.bak
